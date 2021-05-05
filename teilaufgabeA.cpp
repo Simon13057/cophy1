@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <math.h>
 
 using namespace std;
 
@@ -9,6 +10,7 @@ void euler(const double[], string);
 void rungeKutta(const double[], string);
 void leapFrog(const double[], string, string);
 void verlet(const double[], string);
+void verlet(const double[], const double[], string);
 
 int main()
 {
@@ -22,7 +24,10 @@ int main()
     // Bedeutung der Werte nach Reihenfolge: Laufzeit, Schrittweite, Omega, Startwert x, Startwert v
     double init[5] = {30.0, 0.01, 1.0, 5.0, 0.0};
     // Werte mit Dämpfung (letzter Eintrag ist Dämpfungskoeffizient)
-    double initV[6] = {30.0, 0.01, 1.0, 5.0, 0.0, 0.1};
+    double initV[6] = {30.0, 0.01, 1.0, 5.0, 0.0, 0.5};
+    // Mit anregender kraft. Werte nach Reihenfolge: Amplitude A, Frequenz F, Phasenversch P
+    // Ergibt Funktion: a(t) = A * sin(F*t+P)
+    double aKraft[3] = {10.0, 5.0, 0.0};
 
     //Name des Files in welches die Werte geschreiben werden
     string filenameEuler = "Euler-data.txt";
@@ -30,12 +35,14 @@ int main()
     string dateinameLFx = "LF-data-x.txt";
     string dateinameLFv = "LF-data-v.txt";
     string dateinameV = "Verlet-data.txt";
+    string dateinameVwF = "Verlet-data-f.txt";
 
     //Aufrufen der Funktionen
     euler(init, filenameEuler);
     rungeKutta(init, dateinameRK);
     leapFrog(init, dateinameLFx, dateinameLFv);
     verlet(initV, dateinameV);
+    verlet(initV, aKraft, dateinameVwF);
     return 0;
 }
 
@@ -172,6 +179,46 @@ void verlet(const double init[], string filename)
         k3 = 1.0 / (2.0 + d * h);
 
         xn = (k1 + k2) * k3;
+        v = (xn - xp) / (2.0 * h);
+
+        // In File schreiben
+        File << t << " " << x << " " << v << "\n";
+
+        xp = x;
+        x = xn;
+    }
+    //File schließen
+    File.close();
+}
+
+void verlet(const double init[], const double initForce[], string filename)
+{
+    cout << "Start verlet with external Force. Writing in File: " << filename << endl;
+
+    // Öffne 'File' zu schreiben
+    ofstream File(filename);
+    if (File.fail())
+    {
+        cout << "Error with File in verlet() Func" << endl;
+        return;
+    }
+
+    // Verlet Verfahren
+    const double h = init[1], omega = init[2], A = initForce[0], F = initForce[1], P = initForce[2];
+    double xp = init[3], vp = init[4], d = init[5];
+    double k1, k2, k3, k4, xn, x, v; // xn = x_(n+1), x = x_(n), xp = x_(n-1) -- entsprechend v -- k sind zwischenergebnisse
+
+    // Bestimme x durch Anfangsgeschw mittels Euler
+    x = xp + h * vp;
+    File << 0 << " " << xp << " " << vp << "\n";
+    for (double t = h; t <= init[0]; t += h)
+    {
+        k1 = 2.0 * x * (2.0 - h * h * omega * omega);
+        k2 = xp * (d * h - 2.0);
+        k3 = 1.0 / (2.0 + d * h);
+        k4 = 2 * h * h * A * sin(F * t + P);
+
+        xn = (k1 + k2 + k4) * k3;
         v = (xn - xp) / (2.0 * h);
 
         // In File schreiben
