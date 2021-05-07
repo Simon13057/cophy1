@@ -29,7 +29,7 @@ def readData(filename, axis=3):
 
 
 verletDataF = readData('Verlet-data-f.txt')
-eulerData = readData('euler-data.txt')
+eulerData = readData('Euler-data.txt')
 leapFrogDataX = readData('LF-data-x.txt', 2)
 leapFrogDataV = readData('LF-data-v.txt', 2)
 rungeKuttaData = readData('RK-data.txt')
