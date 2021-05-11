@@ -36,33 +36,39 @@ def calcEnergy(data, axis, A):
         index += 1
     return energyData
 
-def calcTotalEnergy(kinetic, potetial):
-    if len(kinetic) is not len(potetial):
+def calcTotalEnergy(kinetic, potential):
+    if len(kinetic) != len(potential):
         print('Längen der Daten nicht gleich!')
         return
     totalEnergy = np.zeros(len(kinetic))
     index = 0
     while index < len(kinetic):
-        totalEnergy[index] = kinetic[index] + potetial[index]
+        totalEnergy[index] = kinetic[index] + potential[index] - 12.5
         index +=1
-    return totalEnergy 
+    return totalEnergy
 
+# Zum Debuggen (viellecht hat np eine analoge funktion)
+def printFrist(data):
+    index = 0
+    while index < 30:
+        print(data[index])
+        index += 1
 
-verletDataF = readData('Verlet-data-f.txt')
 eulerData = readData('Euler-data.txt')
-leapFrogDataX = readData('LF-data-x.txt', 2)
-leapFrogDataV = readData('LF-data-v.txt', 2)
-rungeKuttaData = readData('RK-data.txt')
-
+rungeKuttaData = readData('RungeKutta-data.txt')
+leapFrogData = readData('LeapFrog-data.txt')
+verletDataF = readData('Verlet-data-f.txt')
 
 #Testing energy calc 
 kinetic = calcEnergy(eulerData, 1, 1)
 potential = calcEnergy(eulerData, 2, 1)
 totalEnergy = calcTotalEnergy(kinetic, potential)
 
-fig, ax = plt.subplots()
-ax.plot(eulerData[0], totalEnergy)
-ax.plot(eulerData[0], eulerData[1])
+fig, axs = plt.subplots(2)
+axs[0].plot(eulerData[0], totalEnergy)
+axs[0].plot(eulerData[0], eulerData[1])
+axs[1].plot(leapFrogData[0], leapFrogData[1])
+axs[1].plot(leapFrogData[0], leapFrogData[2])
 
 """
 fig, axs = plt.subplots(2)
@@ -72,4 +78,6 @@ axs[0].plot(rungeKuttaData[0], rungeKuttaData[2])
 axs[1].plot(eulerData[0], eulerData[1])
 axs[1].plot(eulerData[0], eulerData[2])
 """
+
 plt.show()
+
