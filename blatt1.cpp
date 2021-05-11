@@ -12,6 +12,7 @@ void leapFrog(const double[], string, string);
 void leapFrog(const double [], string); // Data in ein File statt 2 Files schreiben (mit linearer interpolation)
 void verlet(const double[], string); // Mit Dämpfung
 void verlet(const double[], const double[], string); // Mit externer Kraft und Dämpfung
+void referenceData(const double [], string);
 
 int main()
 {
@@ -23,7 +24,7 @@ int main()
     */
 
     // Bedeutung der Werte nach Reihenfolge: Laufzeit, Schrittweite, Omega, Startwert x, Startwert v
-    double init[5] = {30.0, 0.01, 1.0, 5.0, 0.0};
+    double init[5] = {30.0, 0.0001, 1.0, 5.0, 0.0};
     // Werte mit Dämpfung (letzter Eintrag ist Dämpfungskoeffizient)
     double initV[6] = {30.0, 0.01, 1.0, 5.0, 0.0, 0.5};
     // Mit anregender kraft. Werte nach Reihenfolge: Amplitude A, Frequenz F, Phasenversch P
@@ -38,7 +39,9 @@ int main()
     string dateinameLF = "LeapFrog-data.txt";
     string dateinameV = "Verlet-data.txt";
     string dateinameVwF = "Verlet-data-f.txt";
+    string dateinameRef = "Reference-data.txt";
 
+    referenceData(init, dateinameRef);
     //Aufrufen der Funktionen
     euler(init, filenameEuler);
     rungeKutta(init, dateinameRK);
@@ -73,6 +76,32 @@ void euler(const double init[], string name)
 
         x = xp;
         y = yp;
+    }
+    // 'File' wieder schließen
+    File.close();
+}
+
+void referenceData(const double init[], string name)
+{
+    cout << "Berechne Analytische Lösung. Writing in File: " << name << endl;
+
+    // Öffne 'File' zu schreiben
+    ofstream File(name);
+    if (File.fail())
+    {
+        cout << "Error with File in referenceData() Func" << endl;
+        return;
+    }
+    // Explizites Euerverfahren
+    double h = init[1], omega = init[2], x0 = init[3], y0 = init[4], k1, k2,x;
+
+    for (double t = 0; t <= init[0]; t += h)
+    {
+        k1 = y0 * sin(omega*t)/omega;
+        k2 = x0*cos(omega*t);
+        x = k1 + k2;
+        // In File schreiben
+        File << t << " " << x << "\n";
     }
     // 'File' wieder schließen
     File.close();
