@@ -13,6 +13,8 @@ void leapFrog(const double [], string); // Data in ein File statt 2 Files schrei
 void verlet(const double[], string); // Mit Dämpfung
 void verlet(const double[], const double[], string); // Mit externer Kraft und Dämpfung
 void referenceData(const double [], string);
+double verletMax(const double [], const double []);
+void callVerlet(string, double const [], double []);
 
 int main()
 {
@@ -24,32 +26,46 @@ int main()
     */
 
     // Bedeutung der Werte nach Reihenfolge: Laufzeit, Schrittweite, Omega, Startwert x, Startwert v
-    double init[5] = {30.0, 0.0001, 1.0, 5.0, 0.0};
+    double init[5] = {30.0, 0.01, 1.0, 5.0, 0.0};
     // Werte mit Dämpfung (letzter Eintrag ist Dämpfungskoeffizient)
-    double initV[6] = {30.0, 0.01, 1.0, 5.0, 0.0, 0.5};
+    double initV[6] = {160.0, 0.1, 1., 2.0, 2.0, 1};
+    double initV2[6] = {30.0, 0.1, 3., 5.0, 0.0, 3};
+    double initV3[6] = {30.0, 0.1, 10., 5.0, 0.0, 0.5};
     // Mit anregender kraft. Werte nach Reihenfolge: Amplitude A, Frequenz F, Phasenversch P
     // Ergibt Funktion: a(t) = A * sin(F*t+P)
-    double aKraft[3] = {10.0, 5.0, 0.0};
+    double aKraft1[3] = {5.0, 0.0, 0.0};
+    double aKraft2[3] = {5.0, 0.15, 0.0};
 
+    /*
     //Name des Files in welches die Werte geschreiben werden
     string filenameEuler = "Euler-data.txt";
     string dateinameRK = "RungeKutta-data.txt";
     //string dateinameLFx = "LF-data-x.txt";
     //string dateinameLFv = "LF-data-v.txt";
     string dateinameLF = "LeapFrog-data.txt";
-    string dateinameV = "Verlet-data.txt";
-    string dateinameVwF = "Verlet-data-f.txt";
     string dateinameRef = "Reference-data.txt";
 
-    referenceData(init, dateinameRef);
     //Aufrufen der Funktionen
+    referenceData(init, dateinameRef);
     euler(init, filenameEuler);
     rungeKutta(init, dateinameRK);
     //leapFrog(init, dateinameLFx, dateinameLFv);
     leapFrog(init, dateinameLF);
-    
-    verlet(initV, dateinameV);  //ohne antreibende Kraft, mit Dämpfung
-    verlet(initV, aKraft, dateinameVwF); //mit antreibender Kraft
+    */
+
+    string dateinameV1 = "Verlet-data-1.txt";
+    string dateinameV2 = "Verlet-data-2.txt";
+    string dateinameV3 = "Verlet-data-3.txt";
+    //ohne antreibende Kraft, mit Dämpfung
+    //verlet(initV, aKraft, dateinameV1);
+    //verlet(initV2, aKraft,dateinameV2);
+    //verlet(initV3, aKraft, dateinameV3);             
+    //string dateinameVwF = "Verlet-data-f.txt";
+    //verlet(initV, aKraft1, dateinameV2);
+    //verlet(initV, aKraft2, dateinameV3);
+    callVerlet(dateinameV1, initV, aKraft1);    //mit antreibender Kraft
+    callVerlet(dateinameV2, initV2, aKraft1); 
+    callVerlet(dateinameV3, initV3, aKraft1); 
     return 0;
 }
 
@@ -107,7 +123,7 @@ void referenceData(const double init[], string name)
     File.close();
 }
 
-void rungeKutta(const double init[], std::string filename)
+void rungeKutta(const double init[], string filename)
 {
     cout << "Start rungeKutta. Writing in File: " << filename << endl;
 
@@ -124,6 +140,9 @@ void rungeKutta(const double init[], std::string filename)
     double k1x, k1v, k2x, k2v, xnew, vnew;
     for (double t = 0; t <= init[0]; t += h)
     {
+        //write in File
+        File << t << " " << x << " " << v << "\n";
+
         k1x = h * v;
         k1v = -omega * omega * h * x;
 
@@ -132,9 +151,6 @@ void rungeKutta(const double init[], std::string filename)
 
         xnew = x + k2x;
         vnew = v + k2v;
-
-        //write in File
-        File << t << " " << xnew << " " << vnew << "\n";
 
         x = xnew;
         v = vnew;
@@ -213,7 +229,7 @@ void leapFrog(const double init[], string filename)
     for (double t = h; t <= init[0]; t += h)
     {
         xnew = x + h * v;
-        vnew = v - h * omega * omega * x;
+        vnew = v - h * omega * omega * xnew;
 
         temp = (v + vnew) / 2.; // linear interpoliert um v_(n+1) zu erhalten statt v_(n+3/2)
 
@@ -301,5 +317,65 @@ void verlet(const double init[], const double initForce[], string filename)
         x = xn;
     }
     //File schließen
+    File.close();
+}
+
+
+double verletMax(const double init[], const double initForce[])
+{
+    // Verlet Verfahren
+    const double h = init[1], omega = init[2], A = initForce[0], F = initForce[1], P = initForce[2];
+    double xp = init[3], vp = init[4], d = init[5];
+    double k1, k2, k3, k4, xn, x, v; // xn = x_(n+1), x = x_(n), xp = x_(n-1) -- entsprechend v -- k sind zwischenergebnisse
+
+    // Maximale Amplitude
+    double max = 0;
+
+    // Bestimme x durch Anfangsgeschw mittels Euler
+    x = xp + h * vp;
+    
+    for (double t = h; t <= init[0]; t += h)
+    {
+        k1 = 2.0 * x * (2.0 - h * h * omega * omega);
+        k2 = xp * (d * h - 2.0);
+        k3 = 1.0 / (2.0 + d * h);
+        k4 = 2 * h * h * A * sin(F * t + P);
+
+        xn = (k1 + k2 + k4) * k3;
+        v = (xn - xp) / (2.0 * h);
+
+        // ab t = 5 suche nach Max (nach einschwingvorgang)
+        if(t >= 10 && xn >= max){
+            max = xn;
+        }
+
+        xp = x;
+        x = xn;
+    }
+    //File schließen
+    return max;
+}
+
+// Achtung! Annahme: omega = 1
+void callVerlet(string filename, double const init[], double aKraft[])
+{
+    // Initalise callVerlet
+    double maxOmega = 3.0;
+    double h = 0.01;
+    double max = 0.0;
+
+    ofstream File(filename);
+    if(File.fail()){
+        cout << "Fehler mit File in callVerlet Fuc" << endl;
+    }
+    
+    for(double omega = h; omega <= maxOmega; omega += h){
+        
+        aKraft[1] = omega;
+        max = verletMax(init, aKraft);
+
+        File << omega <<  " " << max/init[3] << "\n";
+    }
+
     File.close();
 }
