@@ -2,8 +2,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define H 0.001
-#define MAX 20
+#define H 0.001 // step size
+#define MAX 20  // maximum distance
 
 double F(double x)
 {
@@ -13,18 +13,18 @@ double F(double x)
 int main()
 {
     //set inital values
-    double f_n = H;
-    double f_np = 0; //f n+1
-    double f_nm;     //f n-1
+    double f_n = 1-H;
+    double f_nm = 1; //f n-1
+    double f_np;     //f n+1
 
     for (double x = MAX; x > 0; x -= H)
     {
-        f_nm = H*H/12*(F(x-H) + 10*F(x) + F(x+H)) + 2*f_n - f_np;
+        printf("%g %g %g\n", x, f_n, f_n - x + 20);
 
-        printf("%g %g %g\n", x, f_nm, f_nm + x - 19);
+        f_np = H*H/12*(F(x-H) + 10*F(x) + F(x+H)) + 2*f_n - f_nm;
 
-        f_np = f_n;
-        f_n = f_nm;
+        f_nm = f_n;
+        f_n = f_np;
     }
 
     return 0;
