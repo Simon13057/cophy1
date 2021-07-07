@@ -31,32 +31,53 @@ int main()
             data[i][n+1] = data[i][n] + ALPHA*(data[i+1][n]-2*data[i][n]+data[i-1][n]);
 
             /* sets NaNs to zero (temporary solution) */
-            if(isnan(data[i][n+1]))
+            if(isnan(data[i][n+1]) | isinf(data[i][n+1]))
                 data[i][n+1]=0;
         }
     }
 
+
     /* Write the resulting matrix to a file. Can be plotted with gnuplot> splot "diffusion3d.dat" */
+    /* As of now, the preferred method is plotting a heatmap for which the data is supplied in colormap.dat
+
     FILE *f = fopen("diffusion3d.dat","w");
     for (int n = 0; n < TIME_STEPS; n++)
     {
         for (int i = 0; i < SAMPLES; i++)
         {
+            if(isnan(data[i][n]))
+            {
+                puts("nan encountered");
+                data[i][n]=0;
+            }
             fprintf(f, "%g %g %g\n", n*DT, i*DX, data[i][n]);
         }
         fprintf(f,"\n");
     }
     fclose(f);
+    */
 
     /* Write snapshots at several timestamps to a file */
     FILE *f2 = fopen("diffusion2d.dat","w");
-    fprintf(f2,"# x t=0 t=0.1 t=0.5 t=1");
+    fprintf(f2,"# x t=0 t=0.1 t=0.5 t=1\n");
     
     for (int i = 0; i < SAMPLES; i++)
     {
         fprintf(f2,"%g %g %g %g %g\n",i*DX,data[i][0],data[i][100-1],data[i][500-1],data[i][1000-1]);
     }
     fclose(f2);
+
+    /* Write to file for colormap */
+    FILE *f3 = fopen("colormap.dat","w");
+    for (int n = 0; n < TIME_STEPS; n++)
+    {
+        for (int i = 0; i < SAMPLES; i++)
+        {
+            fprintf(f3, "%g ", data[i][n]);
+        }
+        fprintf(f3,"\n");
+    }
+    fclose(f3);
 
     return 0;
 }

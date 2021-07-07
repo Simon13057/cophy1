@@ -1,4 +1,4 @@
 all:ftcs
 
-ftcs: ftcs.c
+ftcs:
 	cc ftcs.c -lm -Wall && ./a.out && rm a.out
