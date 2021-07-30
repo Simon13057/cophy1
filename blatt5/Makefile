@@ -1,4 +1,8 @@
-all:ftcs
+all: ftcs crank-nicolson
 
 ftcs:
-	cc ftcs.c -lm -Wall && ./a.out && rm a.out
+	cc ftcs.c -O2 -lm -Wall && ./a.out && rm a.out
+
+crank-nicolson:
+	cc crank-nicolson.c -lm -Wall && ./a.out > crank-nicolson.dat && rm a.out
+
