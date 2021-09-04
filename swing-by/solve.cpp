@@ -34,7 +34,7 @@ double *f(double vals[5])
     return a;
 }
 
-void LeapFrog::leapfrog_fixedObj(Object move_obj, Object fixed_obj)
+void LeapFrog::leapfrog_fixedObj(Object &move_obj, Object &fixed_obj)
 {
     cout << "Fixed Object: " << fixed_obj.print_vals() << endl;
     cout << "Moving Object: " << move_obj.print_vals() << endl;
@@ -70,7 +70,7 @@ void LeapFrog::leapfrog_fixedObj(Object move_obj, Object fixed_obj)
     file.close();
 }
 
-void LeapFrog::leapfrog_2obj(Object first, Object second)
+void LeapFrog::leapfrog_2obj(Object first, Object &second)
 {
     cout << "First Object: " << first.print_vals() << endl;
     cout << "Second Object: " << second.print_vals() << endl;
@@ -92,7 +92,7 @@ void LeapFrog::leapfrog_2obj(Object first, Object second)
 
         if (file.is_open())
         {
-            file << t << ";" << first.print_vals() << to_string(ax1) << ";" << to_string(ay1) << ";" << second.print_vals() << to_string(ax2) << ";" << to_string(ay2) << endl;
+            file << t << ";" << first.print_vals() << first.get_vges() << ";" << to_string(ax1) << ";" << to_string(ay1) << ";" << second.print_vals() << second.get_vges() << ";" << to_string(ax2) << ";" << to_string(ay2) << endl;
         }
 
         double vxph1 = first.vx + this->h * ax1;
@@ -120,4 +120,33 @@ void LeapFrog::leapfrog_2obj(Object first, Object second)
         t += this->h;
     }
     file.close();
+}
+
+double LeapFrog::max_vges(Object first, double x_start, double y_start, double vges_start, double mass)
+{
+    double phi_max = 0;
+    double v_max = 0;
+
+    ofstream file("shooting_data.csv");
+
+    double phi = 0;
+    while (phi < 2 * M_PI)
+    {
+        double vx = sin(phi) * vges_start;
+        double vy = cos(phi) * vges_start;
+
+        Object second(x_start, y_start, vx, vy, mass);
+        this->leapfrog_2obj(first, second);
+
+        double v_end = second.get_vges();
+        if (v_end >= v_max)
+        {
+            phi_max = phi;
+            v_max = v_end;
+        }
+        file << phi << ";" << v_end << endl;
+        phi += 1 / (2 * M_PI) * 0.1;
+    }
+    file.close();
+    return phi_max;
 }
