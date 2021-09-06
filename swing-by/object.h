@@ -10,18 +10,20 @@ using namespace std;
 class Object
 {
 private:
-    double mass;
+    double mass, radius;
 
 public:
     double x, y, vx, vy;
 
     Object();
-    Object(double, double, double, double, double);
+    Object(double, double, double, double, double, double);
 
     string print_vals() { return to_string(this->x) + ";" + to_string(this->y) + ";" + to_string(this->vx) + ";" + to_string(this->vy) + ";"; };
     double get_vges() { return sqrt(vx * vx + vy * vy); };
     void set_mass(double);
     double get_m() { return mass; };
+    void set_radius(double);
+    double get_radius() { return radius; };
 };
 
 #endif

@@ -75,6 +75,8 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
     cout << "First Object: " << first.print_vals() << endl;
     cout << "Second Object: " << second.print_vals() << endl;
 
+    double minDistance = first.get_radius() + second.get_radius();
+
     ofstream file(this->filename);
     double t = 0;
     while (t <= this->runtime)
@@ -89,6 +91,17 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
         double *a2 = f(temp2);
         double ax2 = *a2;
         double ay2 = *(a2 + 1);
+
+        double tempDistance = sqrt(pow(first.x - second.x, 2) + pow(first.y - second.y, 2));
+        if (tempDistance <= minDistance)
+        {
+            cout << "the objects CRASHED" << endl;
+            first.vx = 0;
+            first.vy = 0;
+            second.vx = 0;
+            second.vy = 0;
+            t = this->runtime;
+        }
 
         if (file.is_open())
         {
@@ -122,20 +135,20 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
     file.close();
 }
 
-double LeapFrog::max_vges(Object first, double x_start, double y_start, double vges_start, double mass)
+double LeapFrog::max_vges(Object first, double x_start, double y_start, double vges_start, double mass, double radius)
 {
     double phi_max = 0;
     double v_max = 0;
 
     ofstream file("shooting_data.csv");
 
-    double phi = 0;
-    while (phi < 2 * M_PI)
+    double phi = M_PI * 4. / 3.;
+    while (phi < M_PI * 5. / 3.)
     {
         double vx = sin(phi) * vges_start;
         double vy = cos(phi) * vges_start;
 
-        Object second(x_start, y_start, vx, vy, mass);
+        Object second(x_start, y_start, vx, vy, mass, radius);
         this->leapfrog_2obj(first, second);
 
         double v_end = second.get_vges();
@@ -144,7 +157,10 @@ double LeapFrog::max_vges(Object first, double x_start, double y_start, double v
             phi_max = phi;
             v_max = v_end;
         }
-        file << phi << ";" << v_end << endl;
+        if (file.is_open())
+        {
+            file << phi << ";" << v_end << endl;
+        }
         phi += 1 / (2 * M_PI) * 0.1;
     }
     file.close();

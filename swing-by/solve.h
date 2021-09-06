@@ -17,7 +17,7 @@ public:
 
     void leapfrog_fixedObj(Object &, Object &);
     void leapfrog_2obj(Object, Object &);
-    double max_vges(Object, double, double, double, double);
+    double max_vges(Object, double, double, double, double, double);
 };
 
 double *f(double[]);
