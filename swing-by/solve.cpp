@@ -34,42 +34,6 @@ double *f(double vals[5])
     return a;
 }
 
-void LeapFrog::leapfrog_fixedObj(Object &move_obj, Object &fixed_obj)
-{
-    cout << "Fixed Object: " << fixed_obj.print_vals() << endl;
-    cout << "Moving Object: " << move_obj.print_vals() << endl;
-
-    ofstream file(this->filename);
-    double t = 0;
-    while (t <= this->runtime)
-    {
-        double temp[5] = {move_obj.x, fixed_obj.x, move_obj.y, fixed_obj.y, fixed_obj.get_m()};
-
-        double *a = f(temp);
-        double ax = *a;
-        double ay = *(a + 1);
-
-        if (file.is_open())
-        {
-            file << t << ";" << move_obj.print_vals() << to_string(ax) << ";" << to_string(ay) << endl;
-        }
-
-        double vxph = move_obj.vx + this->h * ax;
-        double vyph = move_obj.vy + this->h * ay;
-
-        double xp = move_obj.x + this->h * vxph;
-        double yp = move_obj.y + this->h * vyph;
-
-        move_obj.x = xp;
-        move_obj.y = yp;
-        move_obj.vx = vxph;
-        move_obj.vy = vyph;
-
-        t += this->h;
-    }
-    file.close();
-}
-
 void LeapFrog::leapfrog_2obj(Object first, Object &second)
 {
     cout << "First Object: " << first.print_vals() << endl;
@@ -96,10 +60,8 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
         if (tempDistance <= minDistance)
         {
             cout << "the objects CRASHED" << endl;
-            first.vx = 0;
-            first.vy = 0;
-            second.vx = 0;
-            second.vy = 0;
+            first.vx = second.vx;
+            first.vy = second.vy;
             t = this->runtime;
         }
 
