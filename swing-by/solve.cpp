@@ -6,14 +6,12 @@ LeapFrog::LeapFrog()
 {
     this->runtime = 30.0;
     this->h = 0.01;
-    this->filename = "data.dat";
 }
 
-LeapFrog::LeapFrog(double runtime, double h, string filename)
+LeapFrog::LeapFrog(double runtime, double h)
 {
     this->runtime = runtime;
     this->h = h;
-    this->filename = filename;
 }
 
 double *f(double vals[5])
@@ -41,7 +39,8 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
 
     double minDistance = first.get_radius() + second.get_radius();
 
-    ofstream file(this->filename);
+    ofstream file1("First_Obj.dat");
+    ofstream file2("Second_Obj.dat");
     double t = 0;
     while (t <= this->runtime)
     {
@@ -60,14 +59,19 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
         if (tempDistance <= minDistance)
         {
             cout << "the objects CRASHED" << endl;
-            first.vx = second.vx;
-            first.vy = second.vy;
+            second.vx = first.vx;
+            second.vy = first.vy;
             t = this->runtime;
         }
 
-        if (file.is_open())
+        if (file1.is_open())
         {
-            file << t << ";" << first.print_vals() << first.get_vges() << ";" << to_string(ax1) << ";" << to_string(ay1) << ";" << second.print_vals() << second.get_vges() << ";" << to_string(ax2) << ";" << to_string(ay2) << endl;
+            file1 << t << ";" << first.print_vals() << first.get_vges() << ";" << first.get_kinE() << endl;
+        }
+
+        if (file2.is_open())
+        {
+            file2 << t << ";" << second.print_vals() << second.get_vges() << ";" << second.get_kinE() << endl;
         }
 
         double vxph1 = first.vx + this->h * ax1;
@@ -94,7 +98,8 @@ void LeapFrog::leapfrog_2obj(Object first, Object &second)
 
         t += this->h;
     }
-    file.close();
+    file1.close();
+    file2.close();
 }
 
 double LeapFrog::max_vges(Object first, double x_start, double y_start, double vges_start, double mass, double radius)
@@ -123,7 +128,7 @@ double LeapFrog::max_vges(Object first, double x_start, double y_start, double v
         {
             file << phi << ";" << v_end << endl;
         }
-        phi += 1 / (2 * M_PI) * 0.1;
+        phi += M_PI / 180 * 0.5;
     }
     file.close();
     return phi_max;

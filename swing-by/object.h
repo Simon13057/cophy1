@@ -24,6 +24,7 @@ public:
     double get_m() { return mass; };
     void set_radius(double);
     double get_radius() { return radius; };
+    double get_kinE() { return 0.5 * this->get_m() * this->get_vges() * this->get_vges(); };
 };
 
 #endif

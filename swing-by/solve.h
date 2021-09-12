@@ -10,10 +10,9 @@ class LeapFrog
 {
 public:
     double runtime, h;
-    string filename;
 
     LeapFrog();
-    LeapFrog(double, double, string);
+    LeapFrog(double, double);
 
     void leapfrog_2obj(Object, Object &);
     double max_vges(Object, double, double, double, double, double);
